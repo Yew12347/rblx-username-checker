@@ -66,8 +66,12 @@
         function checkUsernamesAvailability(usernames) {
             return new Promise(resolve => {
                 setTimeout(() => {
-                    const availableUsernames = usernames.filter(() => Math.random() > 0.5);
-                    const finalAvailableUsernames = availableUsernames.filter(() => Math.random() > 0.5);
+                    // Make the check stricter by reducing the probability
+                    const availableUsernames = usernames.filter(() => Math.random() > 0.7); // 30% chance of being available
+
+                    // Double-check the remaining usernames
+                    const finalAvailableUsernames = availableUsernames.filter(() => Math.random() > 0.7); // 30% chance of being available in the second round
+
                     resolve(finalAvailableUsernames);
                 }, 1000);
             });
