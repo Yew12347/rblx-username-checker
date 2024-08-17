@@ -23,7 +23,7 @@
     <script>
         function generateAndCheckUsernames() {
             const length = parseInt(document.getElementById('length').value);
-            const count = Math.min(parseInt(document.getElementById('count').value), 250); // Limit to 250
+            const count = parseInt(document.getElementById('count').value);
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
 
@@ -38,21 +38,15 @@
             }
 
             const usernames = generateRandomUsernames(length, count);
+            resultsDiv.innerHTML = '<h2>Checking Availability...</h2>';
 
-            checkUsernamesAvailability(usernames).then(availableUsernames => {
-                if (availableUsernames.length > 0) {
-                    resultsDiv.innerHTML = '<h2>Available Usernames:</h2><ul>' +
-                        availableUsernames.map(username => `<li class="available">${username}</li>`).join('') +
-                        '</ul>';
-                } else {
-                    resultsDiv.innerHTML = '<h2>No available usernames, please try again.</h2>';
-                }
-            });
+            checkUsernamesAvailability(usernames);
         }
 
         function generateRandomUsernames(length, count) {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             const usernames = [];
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
             for (let i = 0; i < count; i++) {
                 let username = '';
                 for (let j = 0; j < length; j++) {
@@ -60,20 +54,81 @@
                 }
                 usernames.push(username);
             }
+
             return usernames;
         }
 
+        function getAllCapitalizations(str) {
+            const result = [];
+            const chars = str.split('');
+            const mix = (index) => {
+                if (index === chars.length) {
+                    result.push(chars.join(''));
+                    return;
+                }
+                chars[index] = chars[index].toLowerCase();
+                mix(index + 1);
+                chars[index] = chars[index].toUpperCase();
+                mix(index + 1);
+            };
+            mix(0);
+            return result;
+        }
+
         function checkUsernamesAvailability(usernames) {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    // Make the check stricter by reducing the probability
-                    const availableUsernames = usernames.filter(() => Math.random() > 0.7); // 30% chance of being available
+            let availableUsernames = [];
+            const promises = usernames.map(username => {
+                const allVariants = getAllCapitalizations(username);
 
-                    // Double-check the remaining usernames
-                    const finalAvailableUsernames = availableUsernames.filter(() => Math.random() > 0.7); // 30% chance of being available in the second round
+                const checkedVariants = allVariants.map(variant => {
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            const isAvailable = Math.random() > 0.5; // Simulate availability
+                            resolve(isAvailable);
+                        }, Math.random() * 1000);
+                    });
+                });
 
-                    resolve(finalAvailableUsernames);
-                }, 1000);
+                return Promise.all(checkedVariants).then(results => {
+                    const isAvailable = results.every(result => result === true);
+                    if (isAvailable) {
+                        return doubleCheckUsername(username.toLowerCase()).then(isStillAvailable => {
+                            if (isStillAvailable) {
+                                availableUsernames.push(username.toLowerCase());
+                            }
+                        });
+                    }
+                });
+            });
+
+            Promise.all(promises).then(() => {
+                const resultsDiv = document.getElementById('results');
+                if (availableUsernames.length > 0) {
+                    resultsDiv.innerHTML = '<h2>Available Usernames:</h2><ul>' +
+                        availableUsernames.map(username => `<li class="available">${username}</li>`).join('') +
+                        '</ul>';
+                } else {
+                    resultsDiv.innerHTML = '<h2>No usernames available. Please try again.</h2>';
+                }
+            });
+        }
+
+        function doubleCheckUsername(username) {
+            return new Promise((resolve) => {
+                const allVariants = getAllCapitalizations(username);
+
+                const checkedVariants = allVariants.map(variant => {
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            const isAvailable = Math.random() > 0.5; // Simulate availability
+                            resolve(isAvailable);
+                        }, Math.random() * 1000);
+                    });
+                });
+
+                Promise.all(checkedVariants).then(results => {
+                    resolve(results.every(result => result === true));
+                });
             });
         }
     </script>
