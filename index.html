@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Username Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #results { margin-top: 20px; }
+        .available { color: green; }
+        .unavailable { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Roblox Username Checker</h1>
+    <label for="length">Username Length:</label>
+    <input type="number" id="length" name="length" min="3" max="20" value="3">
+    <label for="count">Number of Usernames:</label>
+    <input type="number" id="count" name="count" min="1" max="100" value="5">
+    <button onclick="generateAndCheckUsernames()">Generate and Check Usernames</button>
+    <div id="results"></div>
+
+    <script>
+        function generateAndCheckUsernames() {
+            const length = parseInt(document.getElementById('length').value);
+            const count = parseInt(document.getElementById('count').value);
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            if (length < 3 || length > 20) {
+                alert('Username length must be between 3 and 20.');
+                return;
+            }
+
+            if (count < 1 || count > 100) {
+                alert('Number of usernames must be between 1 and 100.');
+                return;
+            }
+
+            const usernames = generateRandomUsernames(length, count);
+
+            // Simulate a server check (for demonstration purposes)
+            checkUsernamesAvailability(usernames).then(availableUsernames => {
+                if (availableUsernames.length > 0) {
+                    resultsDiv.innerHTML = '<h2>Available Usernames:</h2><ul>' +
+                        availableUsernames.map(username => `<li class="available">${username}</li>`).join('') +
+                        '</ul>';
+                } else {
+                    resultsDiv.innerHTML = '<h2>No usernames available. Please try again.</h2>';
+                }
+            });
+        }
+
+        function generateRandomUsernames(length, count) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const usernames = [];
+            for (let i = 0; i < count; i++) {
+                let username = '';
+                for (let j = 0; j < length; j++) {
+                    username += characters.charAt(Math.floor(Math.random() * characters.length));
+                }
+                usernames.push(username);
+            }
+            return usernames;
+        }
+
+        function checkUsernamesAvailability(usernames) {
+            return new Promise(resolve => {
+                // Simulate a delay to mimic server-side processing
+                setTimeout(() => {
+                    // Randomly determine if each username is available
+                    const availableUsernames = usernames.filter(() => Math.random() > 0.5);
+
+                    // Double-check each available username
+                    const finalAvailableUsernames = availableUsernames.filter(() => Math.random() > 0.5);
+
+                    resolve(finalAvailableUsernames);
+                }, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
